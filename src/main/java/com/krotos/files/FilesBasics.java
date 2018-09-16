@@ -1,4 +1,4 @@
-package com.krotos;
+package com.krotos.files;
 
 
 import java.io.IOException;

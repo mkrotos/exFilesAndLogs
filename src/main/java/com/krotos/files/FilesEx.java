@@ -1,4 +1,4 @@
-package com.krotos;
+package com.krotos.files;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,7 +18,7 @@ public class FilesEx {
         String pathString = "C:/totalcmd";
         Path pathForFiles = Paths.get(pathString);
         int depth = 5;
-        //Files.walk(path, depth).forEach(System.out::println);
+        Files.walk(pathForFiles, depth).forEach(System.out::println);
 
         String pathToNewFile = "ex1.txt";
         Path newPath = Paths.get(pathToNewFile);
