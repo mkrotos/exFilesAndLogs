@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class FilesEx {
@@ -19,9 +16,10 @@ public class FilesEx {
 
     private static void findTxtAndWriteFirstLines() throws IOException {
         String pathString = "C:/totalcmd";
-        Path path = Paths.get(pathString);
+        Path pathForFiles = Paths.get(pathString);
         int depth = 5;
         //Files.walk(path, depth).forEach(System.out::println);
+
         String pathToNewFile = "ex1.txt";
         Path newPath = Paths.get(pathToNewFile);
         if (!Files.exists(newPath)) {
@@ -30,27 +28,33 @@ public class FilesEx {
 
         Map<String, String> mapOfLines = new HashMap<>();
 
-        List<Path> paths = Files.walk(path, depth)
-                .filter(file -> file.toString().endsWith(".TXT") || file.toString().endsWith(".txt"))
+        List<Path> pathList = Files.walk(pathForFiles, depth)
+                .filter(FilesEx::filterByTxtExtension)
                 .collect(Collectors.toList());
 
         //System.out.println(paths);
 
-        for (Path path1 : paths) {
-            String name = path1.getFileName().toString();
-            String line = Files.lines(path1).findFirst().get();
+        for (Path path : pathList) {
+            String name = path.getFileName().toString();
+            String line = Files.lines(path).findFirst().orElse("");
             mapOfLines.put(name, line);
         }
         //System.out.println(mapOfLines);
         List<String> listOfEntryToFile = new ArrayList<>();
 
         for (Map.Entry entry : mapOfLines.entrySet()) {
-            String line = entry.getKey().toString()+" : "+entry.getValue().toString();
+            String line = formatEntryToStringLine(entry);
             listOfEntryToFile.add(line);
-
         }
+
         Files.write(newPath, listOfEntryToFile);
+    }
 
+    private static String formatEntryToStringLine(Map.Entry entry) {
+        return entry.getKey().toString()+" : "+entry.getValue().toString();
+    }
 
+    private static boolean filterByTxtExtension(Path file) {
+        return file.toString().endsWith(".TXT") || file.toString().endsWith(".txt");
     }
 }
