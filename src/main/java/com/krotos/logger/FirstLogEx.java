@@ -1,13 +1,15 @@
-package com.krotos;
+package com.krotos.logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 
 public class FirstLogEx {
@@ -15,10 +17,43 @@ public class FirstLogEx {
     public static final String WITHOUT_EXTENSION_DEFAULT = "without ext";
 
     public static void main(String[] args) throws IOException {
-        dispCountsOfFileFormats();
+        dispAverageWeightsOfFileFormats();
         System.out.println("---------------------------");
-        dispCountsVer2();
+        dispCountsOfFileFormats();
 
+    }
+
+    private static void dispAverageWeightsOfFileFormats() throws IOException {
+        String pathString = "C:/totalcmd";
+        Path pathForFiles = Paths.get(pathString);
+        int depth = 10;
+        //Files.walk(pathForFiles, depth).forEach(System.out::println);
+
+        Set<String> uniqueExtensions = Files.walk(pathForFiles, depth)
+                .filter(Files::isRegularFile)
+                .map(FirstLogEx::getExtension)
+                .collect(Collectors.toSet());
+        //System.out.println(uniqueExtensions);
+
+        for (String extension : uniqueExtensions) {
+            long numberOfInstances =(long) Files.walk(pathForFiles)
+                    .filter(pathsWithSpecifiedExtension(extension))
+                    .mapToLong(mapPathToFileSize())
+                    .average().orElse(0);
+
+            dispLineOfStringAndLong(extension, numberOfInstances);
+        }
+    }
+
+    private static ToLongFunction<Path> mapPathToFileSize() {
+        return path-> {
+            try {
+                return Files.readAttributes(path,BasicFileAttributes.class).size();
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException();
+            }
+        };
     }
 
     private static void dispCountsOfFileFormats() throws IOException {
@@ -27,23 +62,14 @@ public class FirstLogEx {
         int depth = 10;
         //Files.walk(pathForFiles, depth).forEach(System.out::println);
 
-        Set<String> uniqueExtensions = Files.walk(pathForFiles, depth).filter(Files::isRegularFile).map(FirstLogEx::getExtension).collect(Collectors.toSet());
-        //System.out.println(uniqueExtensions);
+        List<String> nonUniqExtensions=Files
+                .walk(pathForFiles, depth)
+                .filter(Files::isRegularFile)
+                .map(FirstLogEx::getExtension)
+                .collect(Collectors.toList());
 
-        for (String extension : uniqueExtensions) {
-            long numberOfInstances = Files.walk(pathForFiles).filter(pathsWithSpecifiedExtension(extension)).count();
-            dispLineOfStringAndLong(extension, numberOfInstances);
-        }
-    }
-
-    private static void dispCountsVer2() throws IOException {
-        String pathString = "C:/totalcmd";
-        Path pathForFiles = Paths.get(pathString);
-        int depth = 10;
-        //Files.walk(pathForFiles, depth).forEach(System.out::println);
-
-        List<String> nonUniqExtensions=Files.walk(pathForFiles, depth).filter(Files::isRegularFile).map(FirstLogEx::getExtension).collect(Collectors.toList());
-        Map<String,Long> results= nonUniqExtensions.stream().collect(Collectors.groupingBy(s->s,Collectors.counting()));
+        Map<String,Long> results= nonUniqExtensions.stream()
+                .collect(Collectors.groupingBy(s->s,Collectors.counting()));
 
         for (Map.Entry entry:results.entrySet()){
             dispLineOfStringAndLong(entry.getKey().toString(), (long) entry.getValue());
