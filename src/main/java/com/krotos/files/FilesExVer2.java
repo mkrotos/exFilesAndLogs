@@ -1,5 +1,7 @@
 package com.krotos.files;
 
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,15 +14,19 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class FilesExVer2 {
+    final static Logger log=Logger.getLogger(FilesExVer2.class);
+
     public static final String START_DIR_FOR_FIND_TXT_FILES = "C:/totalcmd";
     public static final String DEFAULT_EMPTY_FIRST_LINE = "***empty file***";
     public static final String RESULT_FILE_PATH = "ex2.txt";
+
 
     public static void main(String[] args) throws IOException {
 
         List<Path> listOfTxtFilePaths = findTxtFiles();
         Map<String, String> pathAndFirstLines = getFirstLinesFromFiles(listOfTxtFilePaths);
         writeToFile(pathAndFirstLines);
+        log.debug("Loggggg");
     }
 
     private static List<Path> findTxtFiles() throws IOException {
