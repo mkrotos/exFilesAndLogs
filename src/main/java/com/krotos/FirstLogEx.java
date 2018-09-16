@@ -11,24 +11,30 @@ import java.util.stream.Collectors;
 
 public class FirstLogEx {
 
+    public static final String WITHOUT_EXTENSION_DEFAULT = "without ext";
+
     public static void main(String[] args) throws IOException {
-        dispCountsOfFileFromats();
+        dispCountsOfFileFormats();
     }
 
-    private static void dispCountsOfFileFromats() throws IOException {
+    private static void dispCountsOfFileFormats() throws IOException {
         String pathString = "C:/totalcmd";
         Path pathForFiles = Paths.get(pathString);
         int depth = 10;
         //Files.walk(pathForFiles, depth).forEach(System.out::println);
 
-
-        Set<String> uniqueExtensions = Files.walk(pathForFiles, depth).filter(onlyFiles()).map(FirstLogEx::getExtension).collect(Collectors.toSet());
+        Set<String> uniqueExtensions = Files.walk(pathForFiles, depth).filter(Files::isRegularFile).map(FirstLogEx::getExtension).collect(Collectors.toSet());
         //System.out.println(uniqueExtensions);
 
         for (String extension : uniqueExtensions) {
-            long numberOfInstances = Files.walk(pathForFiles).filter(path -> path.getFileName().toString().endsWith("." + extension)).count();
-            System.out.println(extension + " - " + numberOfInstances);
+            long numberOfInstances = Files.walk(pathForFiles).filter(pathsWithSpecifiedExtension(extension)).count();
+            String lineToDisplay = String.format("%s - %s", extension, numberOfInstances);
+            System.out.println(lineToDisplay);
         }
+    }
+
+    private static Predicate<Path> pathsWithSpecifiedExtension(String extension) {
+        return path -> path.getFileName().toString().endsWith("." + extension);
     }
 
     private static Predicate<Path> onlyFiles() {
@@ -44,10 +50,14 @@ public class FirstLogEx {
 
     private static String getExtension(Path path) {
         try {
-            String[] splitedPath = path.toString().split("\\.");
-            return splitedPath[splitedPath.length - 1];
+            String[] splittedPath = path.toString().split("\\.");
+            int lastElement = splittedPath.length - 1;
+            if(lastElement==0){
+                return WITHOUT_EXTENSION_DEFAULT;
+            }
+            return splittedPath[lastElement];
         } catch (ArrayIndexOutOfBoundsException e) {
-            return "without ext";
+            return WITHOUT_EXTENSION_DEFAULT;
         }
     }
 }
